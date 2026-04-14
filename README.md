@@ -1,15 +1,13 @@
 # Loan Approval ML Pipeline
 
 ## Description
-A modular machine learning pipeline using Streamlit.
+Machine learning project to predict loan approval using user input.
 
 ## Features
-- Data upload
-- EDA
-- Data cleaning
-- Feature selection
-- Model training
-- Evaluation
+- Upload dataset
+- Preprocess data
+- Train model
+- Predict using user input
 
 ## Run
-streamlit run app.py
+python -m streamlit run app.py

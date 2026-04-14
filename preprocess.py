@@ -17,10 +17,8 @@ def remove_outliers_func(df):
     iso = IsolationForest(contamination=0.05, random_state=42)
     preds = iso.fit_predict(num_df)
 
-    df["outlier"] = preds
-    df = df[df["outlier"] == 1]
-
-    return df.drop(columns=["outlier"])
+    df = df[preds == 1]
+    return df
 
 
 def preprocess_pipeline(df, target, remove_out=False):
@@ -29,16 +27,17 @@ def preprocess_pipeline(df, target, remove_out=False):
     y = df[target]
     X = df.drop(columns=[target])
 
-    # Optional outlier removal
+    # Target encoding safe
+    if y.dtype == "object":
+        y = y.map({"yes":1, "no":0, "Y":1, "N":0}).fillna(0)
+    y = y.astype(int)
+
+    # Outlier removal
     if remove_out and len(df) > 50:
         temp = pd.concat([X, y], axis=1)
         temp = remove_outliers_func(temp)
-
         y = temp[target]
         X = temp.drop(columns=[target])
-
-    # Ensure target is numeric
-    y = y.astype(int)
 
     num_cols = X.select_dtypes(include=np.number).columns
     cat_cols = X.select_dtypes(include="object").columns
@@ -60,11 +59,10 @@ def preprocess_pipeline(df, target, remove_out=False):
 
     X_processed = preprocessor.fit_transform(X)
 
-    # Fix sparse matrix issue (NO VS Code warning)
     if sparse.issparse(X_processed):
         X_processed = X_processed.toarray()
 
     selector = VarianceThreshold(0.01)
     X_selected = selector.fit_transform(X_processed)
 
-    return X_selected, y
+    return X_selected, y, preprocessor, selector
